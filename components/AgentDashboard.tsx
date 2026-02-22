@@ -1,6 +1,17 @@
 import React from 'react';
 import { Agent } from '../types';
-import { PhoneCall, CheckCircle, Clock, BookOpen, Send, Megaphone, Target, BarChart2 } from 'lucide-react';
+// Added MessageSquare to the list below
+import { 
+  PhoneCall, 
+  CheckCircle, 
+  Clock, 
+  BookOpen, 
+  Send, 
+  Megaphone, 
+  Target, 
+  BarChart2, 
+  MessageSquare 
+} from 'lucide-react';
 
 interface Props {
   agent: Agent;
