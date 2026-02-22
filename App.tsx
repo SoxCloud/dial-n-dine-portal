@@ -6,7 +6,7 @@ import { AgentRoster } from './components/AgentRoster';
 import { Login } from './components/Login';
 import { SheetConfig } from './components/SheetConfig';
 import { User, UserRole, Agent, AgentStatus } from './types';
-import { MOCK_AGENTS } from './constants';
+import { MOCK_AGENTS, GOOGLE_SHEET_ID } from './constants';
 import { ArrowLeft } from 'lucide-react';
 import { fetchSheetData } from './services/sheetService';
 
@@ -15,6 +15,9 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [viewingAgentId, setViewingAgentId] = useState<string | null>(null);
   const [agents, setAgents] = useState<Agent[]>(MOCK_AGENTS);
+  
+  // Tracks if we successfully loaded from a sheet. 
+  // If false, we are using the Manual Roster from constants.ts (which is fine!)
   const [isSheetConnected, setIsSheetConnected] = useState(false);
   const [lastSynced, setLastSynced] = useState<Date>(new Date());
   const [isSyncing, setIsSyncing] = useState(false);
@@ -69,8 +72,10 @@ const App: React.FC = () => {
   }, [statusOverrides]); 
 
   // Function to load data from sheet
-  const loadSheetData = async () => {
-    const sheetId = localStorage.getItem('omniDesk_sheetId');
+  const loadSheetData = async (manualId?: string) => {
+    // Priority: 1. Manual Argument, 2. Hardcoded Constant, 3. LocalStorage
+    const sheetId = manualId || GOOGLE_SHEET_ID || localStorage.getItem('omniDesk_sheetId');
+    
     if (sheetId) {
       setIsSyncing(true);
       try {
@@ -88,23 +93,29 @@ const App: React.FC = () => {
           setAgents(mergedData);
           setIsSheetConnected(true);
           setLastSynced(new Date());
+          return true;
         }
       } catch (e) {
-        console.error("Failed to load sheet data, falling back to mock", e);
+        console.error("Failed to load sheet data, falling back to constants/mock", e);
         setIsSheetConnected(false);
+        return false;
       } finally {
         setIsSyncing(false);
       }
     } else {
-        // Apply overrides to Mock data if no sheet
+        // No Sheet ID found, use Manual Roster from constants.ts
         const storedOverridesStr = localStorage.getItem('omniDesk_statusOverrides');
         const currentOverrides = storedOverridesStr ? JSON.parse(storedOverridesStr) : statusOverrides;
         
-        setAgents(prev => prev.map(a => ({
+        // Ensure we are using the MOCK_AGENTS (Manual Roster) as the source
+        setAgents(MOCK_AGENTS.map(a => ({
             ...a,
             status: currentOverrides[a.id] || a.status
         })));
-    }
+        
+        setIsSheetConnected(false);
+        return false;
+      }
   };
 
   useEffect(() => {
@@ -131,7 +142,7 @@ const App: React.FC = () => {
   const handleLogin = (email: string): boolean => {
     const normalizedEmail = email.toLowerCase().trim();
     
-    // 1. Check Admin Credentials
+    // 1. Check Admin Credentials (Hardcoded backup)
     if (normalizedEmail === 'callcenter@dialndine.com') {
       setUser({
         id: 'admin-main',
@@ -144,7 +155,7 @@ const App: React.FC = () => {
       return true;
     }
 
-    // 2. Check Agent Roster (Sheet or Mock)
+    // 2. Check Agent Roster (Sheet or Manual List)
     const foundAgent = agents.find(a => a.email.toLowerCase() === normalizedEmail);
     
     if (foundAgent) {
@@ -192,7 +203,15 @@ const App: React.FC = () => {
   };
 
   if (!user) {
-    return <Login onLogin={handleLogin} />;
+    return (
+      <Login 
+        onLogin={handleLogin} 
+        // We are considered "Configured" if we have agents loaded (either from sheet OR manual roster)
+        // This prevents the "Setup Required" warning when using manual mode.
+        isConfigured={agents.length > 0}
+        usingSheet={isSheetConnected}
+      />
+    );
   }
 
   return (
@@ -213,7 +232,7 @@ const App: React.FC = () => {
               {activeTab === 'dashboard' && (
                 <AdminDashboard 
                     agents={agents} 
-                    onRefresh={loadSheetData}
+                    onRefresh={() => loadSheetData()}
                     lastSynced={lastSynced}
                     isSyncing={isSyncing}
                     onAgentSelect={handleAgentSelect}
