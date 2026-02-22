@@ -4,31 +4,26 @@ export enum UserRole {
 }
 
 export enum AgentStatus {
-  ONLINE = 'Online',
-  AWAY = 'Away',
-  ON_CALL = 'On Call',
-  OFFLINE = 'Offline'
+  ONLINE = 'ONLINE',
+  OFFLINE = 'OFFLINE',
+  BUSY = 'BUSY'
 }
 
-export interface QualityMetrics {
-  capturingInformation: number; // 0-100
-  phoneEtiquette: number;      // 0-100
-  problemSolving: number;      // 0-100
-  productKnowledge: number;    // 0-100
-  promotionUpselling: number;  // 0-100
+export interface DailyStats {
+  date: string;
+  answeredCalls: number;
+  abandonedCalls: number;
+  transactions: number;
+  aht: string;
+  resolutionRate: number;
 }
 
-export interface PerformanceMetrics {
-  callsTaken: number;
-  avgHandleTime: number; // in seconds
-  csatScore: number; // 1-5
-  resolutionRate: number; // percentage
-  
-  // Ticket Stats
-  totalTickets: number;
-  ticketsSolved: number; // Previously ticketsClosed
-  interactions: number;
-  avgResolutionTime: number; // in hours
+export interface AgentEval {
+  date: string;
+  evaluator: string;
+  score: number;
+  positivePoints: string;
+  improvementAreas: string;
 }
 
 export interface Agent {
@@ -36,12 +31,10 @@ export interface Agent {
   name: string;
   email: string;
   role: UserRole;
-  avatarUrl: string;
   status: AgentStatus;
-  department: string;
-  metrics: PerformanceMetrics;
-  qualityMetrics: QualityMetrics;
-  shiftStart: string;
+  avatarUrl: string;
+  history: DailyStats[];
+  evaluations: AgentEval[];
 }
 
 export interface User {
@@ -49,11 +42,5 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  avatarUrl?: string;
-}
-
-export interface SheetConfig {
-  sheetId: string;
-  sheetName: string;
-  lastSynced: string;
+  avatarUrl: string;
 }
