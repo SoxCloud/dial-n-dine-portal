@@ -44,3 +44,18 @@ export interface User {
   role: UserRole;
   avatarUrl: string;
 }
+
+export interface Evaluation {
+  evaluations: {
+    score: number;
+    comments?: string; // ADD THIS LINE
+    kpis: {
+      capture: number;
+      etiquette: number;
+      solving: number;
+      product: number;
+      promo: number;
+      upsell: number;
+    };
+  }[];
+}
