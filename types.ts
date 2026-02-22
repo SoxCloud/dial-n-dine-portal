@@ -1,12 +1,12 @@
 export enum UserRole {
-  ADMIN = 'ADMIN',
-  AGENT = 'AGENT'
+  ADMIN = "ADMIN",
+  AGENT = "AGENT",
 }
 
 export enum AgentStatus {
-  ONLINE = 'ONLINE',
-  OFFLINE = 'OFFLINE',
-  BUSY = 'BUSY'
+  ONLINE = "ONLINE",
+  OFFLINE = "OFFLINE",
+  BUSY = "BUSY",
 }
 
 export interface DailyStats {
@@ -19,6 +19,7 @@ export interface DailyStats {
 }
 
 export interface AgentEval {
+  kpis: {};
   date: string;
   evaluator: string;
   score: number;
