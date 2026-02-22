@@ -86,6 +86,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
              <div className="flex items-center gap-2">
                 <input 
                   type="date" 
+                  title="Start date for filtering metrics"
                   value={dateRange.start}
                   onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
                   className="bg-transparent border-none focus:ring-0 text-sm text-slate-700 dark:text-slate-200 outline-none w-32"
@@ -93,6 +94,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <span className="text-slate-400">-</span>
                 <input 
                   type="date" 
+                  title="End date for filtering metrics"
                   value={dateRange.end}
                   onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
                   className="bg-transparent border-none focus:ring-0 text-sm text-slate-700 dark:text-slate-200 outline-none w-32"
