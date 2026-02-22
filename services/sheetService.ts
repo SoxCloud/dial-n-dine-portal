@@ -2,30 +2,22 @@ import { Agent, AgentStatus, UserRole } from '../types';
 
 const SHEET_ID = '1_MEcMoGiXuYhmxwKv0-Cc0SryMYVIpVOMO6ea2MrKwY';
 
-/**
- * HELPER: Specifically handles DD/MM/YYYY from Google Sheets
- * and converts it to YYYY-MM-DD for the Dashboard Logic.
- */
-const normalizeDate = (dateStr: string): string => {
-  if (!dateStr || dateStr === 'undefined' || dateStr.trim() === '') return '';
-  
-  // Clean the string (remove any trailing spaces or hidden characters)
-  const cleanDate = dateStr.trim();
+// HELPER: Normalizes names to handle "Claire M" vs "Claire Makeleni"
+const normalizeName = (name: string) => name.trim().toLowerCase().split(' ')[0];
 
+const normalizeDate = (dateStr: string): string => {
+  if (!dateStr || dateStr === 'undefined' || dateStr.trim() === '' || dateStr.includes('Date')) return '';
+  const cleanDate = dateStr.trim();
   if (cleanDate.includes('/')) {
     const parts = cleanDate.split('/');
     if (parts.length === 3) {
       const day = parts[0].padStart(2, '0');
       const month = parts[1].padStart(2, '0');
-      let year = parts[2];
-      
-      // Handle 2-digit years (e.g., "26" -> "2026")
-      if (year.length === 2) year = `20${year}`;
-      
+      const year = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
       return `${year}-${month}-${day}`;
     }
   }
-  return cleanDate; // Fallback if already in correct format
+  return cleanDate;
 };
 
 async function fetchTabCsv(tabName: string) {
@@ -46,63 +38,63 @@ export const fetchAllDashboardData = async () => {
 
   const agentsMap: Record<string, Agent> = {};
 
-  // 1. Process Evaluations
+  // 1. Process CallEvaluations (Mapping from image_141a5a)
   evalData.slice(1).forEach(row => {
-    const [name, email, , date, evaluator, , , , , , , , , positive, improvement, rating] = row;
-    if (!email) return;
+    // A:agent, B:email, D:Date, E:evaluator, H:Prod, I:Etiquette, J:Problem, K:Upsell, L:Promo, M:Capture, O:Pos, P:Improv, Q:Rating
+    const [name, email, , date, evaluator, , , prod, etiquette, problem, upsell, promo, capture, , positive, improvement, rating] = row;
+    
+    if (!email || email === 'email' || isNaN(parseFloat(rating))) return; // Skip headers/empty
 
     if (!agentsMap[email]) {
       agentsMap[email] = {
-        id: email,
-        name,
-        email,
-        role: UserRole.AGENT,
-        status: AgentStatus.OFFLINE,
+        id: email, name, email, role: UserRole.AGENT, status: AgentStatus.OFFLINE,
         avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
-        history: [],
-        evaluations: []
+        history: [], evaluations: []
       };
     }
 
     agentsMap[email].evaluations.push({
       date: normalizeDate(date),
       evaluator,
-      score: parseFloat(rating) || 0,
-      positivePoints: positive || 'Great performance.',
-      improvementAreas: improvement || 'Continue following current protocols.'
+      score: (parseFloat(rating) / 5) * 100, // 1-5 scale to 100%
+      positivePoints: positive,
+      improvementAreas: improvement,
+      kpis: {
+        product: parseInt(prod) || 0,
+        etiquette: parseInt(etiquette) || 0,
+        solving: parseInt(problem) || 0,
+        upsell: parseInt(upsell) || 0,
+        promo: parseInt(promo) || 0,
+        capture: parseInt(capture) || 0
+      }
     });
   });
 
-  // 2. Process Daily Stats
+  // 2. Process Agents Tab (Mapping from image_141735)
   agentData.slice(1).forEach(row => {
     const [name, date, answered, abandoned, transactions] = row;
-    const agent = Object.values(agentsMap).find(a => a.name === name);
+    const agent = Object.values(agentsMap).find(a => normalizeName(a.name) === normalizeName(name));
     if (agent) {
       agent.history.push({
         date: normalizeDate(date),
         answeredCalls: parseInt(answered) || 0,
         abandonedCalls: parseInt(abandoned) || 0,
         transactions: parseInt(transactions) || 0,
-        aht: '0s',
-        resolutionRate: 0
+        aht: '0s', resolutionRate: 0
       });
     }
   });
 
-  // 3. Process Metrics
+  // 3. Process TicketMetrics (Mapping from image_141d9a)
   metricData.slice(1).forEach(row => {
-    const [name, , , aht, , , resolution, , , , date] = row;
-    const agent = Object.values(agentsMap).find(a => a.name === name);
+    const [name, , , aht, , , , , , , date] = row;
+    const agent = Object.values(agentsMap).find(a => normalizeName(a.name) === normalizeName(name));
     const targetDate = normalizeDate(date);
     const dayStats = agent?.history.find(h => h.date === targetDate);
     if (dayStats) {
       dayStats.aht = aht || '0s';
-      dayStats.resolutionRate = parseFloat(resolution) || 0;
     }
   });
 
-  return {
-    agents: Object.values(agentsMap),
-    availableDates: [...new Set(agentData.slice(1).map(row => normalizeDate(row[1])))].filter(Boolean)
-  };
+  return { agents: Object.values(agentsMap) };
 };

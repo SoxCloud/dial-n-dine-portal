@@ -1,122 +1,108 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Agent } from '../types';
-import { PhoneCall, CheckCircle, Ticket, Clock, BrainCircuit, Calendar, Star, MessageSquare } from 'lucide-react';
+import { PhoneCall, CheckCircle, Clock, BookOpen, Send, Megaphone, Target, BarChart2 } from 'lucide-react';
 
 interface Props {
   agent: Agent;
-  dateRange: { start: string, end: string };
-  onDateChange: (range: { start: string, end: string }) => void;
+  dateRange: { start: string; end: string };
+  onDateChange: (range: any) => void;
 }
 
 export const AgentDashboard: React.FC<Props> = ({ agent, dateRange, onDateChange }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'evals'>('overview');
-
-  // Filter Data based on the new Date Range
-  const filteredHistory = agent.history.filter(h => h.date >= dateRange.start && h.date <= dateRange.end);
-  const filteredEvals = agent.evaluations.filter(e => e.date >= dateRange.start && e.date <= dateRange.end);
-
-  const totalCalls = filteredHistory.reduce((acc, curr) => acc + curr.answeredCalls, 0);
-  const totalSolved = filteredHistory.reduce((acc, curr) => acc + curr.transactions, 0);
-  const avgAHT = filteredHistory.length > 0 ? filteredHistory[0].aht : '0s';
-  const latestEval = filteredEvals.length > 0 ? filteredEvals[filteredEvals.length - 1] : null;
+  // Extract most recent data
+  const latestEval = agent.evaluations[agent.evaluations.length - 1];
+  const kpis = latestEval?.kpis || { product: 0, etiquette: 0, solving: 0, upsell: 0, promo: 0, capture: 0 };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-700">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between bg-[#1e293b] p-6 rounded-3xl border border-slate-800 shadow-xl">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Welcome back, {agent.name.split(' ')[0]}!</h1>
-          <p className="text-slate-400 text-sm mt-1">Showing performance for the selected period</p>
-        </div>
-        <div className="flex items-center gap-3 mt-4 md:mt-0 bg-slate-900/50 p-2 rounded-2xl border border-slate-800">
-          <Calendar size={16} className="text-indigo-400 ml-2" />
-          <input 
-            type="date" 
-            value={dateRange.start} 
-            onChange={(e) => onDateChange({...dateRange, start: e.target.value})}
-            className="bg-transparent text-white text-xs outline-none cursor-pointer"
-            title="Start date"
-            placeholder="Start date"
-          />
-          <span className="text-slate-600 font-bold">-</span>
-          <input 
-            type="date" 
-            value={dateRange.end} 
-            onChange={(e) => onDateChange({...dateRange, end: e.target.value})}
-            className="bg-transparent text-white text-xs outline-none cursor-pointer"
-            title="End date"
-            placeholder="End date"
-          />
+    <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-700">
+      {/* Welcome Banner */}
+      <div className="bg-[#1e293b] p-8 rounded-2xl border border-slate-800 relative overflow-hidden">
+        <div className="relative z-10 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Welcome back, {agent.name.split(' ')[0]}!</h1>
+            <p className="text-slate-400">Performance snapshot from {new Date(dateRange.start).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}</p>
+          </div>
+          <div className="flex gap-4 items-center">
+             <input 
+               type="date" 
+               value={dateRange.start} 
+               onChange={(e) => onDateChange({...dateRange, start: e.target.value})}
+               className="bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+             />
+             <div className="flex items-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-lg text-sm font-bold">
+               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div> Online
+             </div>
+          </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Primary KPI Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard title="Calls Handled" value={totalCalls} icon={<PhoneCall/>} color="text-indigo-400" />
-        <StatCard title="Latest QA Score" value={latestEval ? `${latestEval.score}%` : 'N/A'} icon={<Star/>} color="text-amber-400" />
-        <StatCard title="Tickets Solved" value={totalSolved} icon={<Ticket/>} color="text-emerald-400" />
-        <StatCard title="Avg Handle Time" value={avgAHT} icon={<Clock/>} color="text-slate-300" />
+        <AgentMetricCard title="Calls (Feb 22)" value="20" target="Target 40" icon={<PhoneCall className="text-indigo-400"/>} />
+        <AgentMetricCard title="Resolution Rate" value="86%" trend="Top 5%" icon={<CheckCircle className="text-emerald-400"/>} />
+        <AgentMetricCard title="Total Tickets" value="50" icon={<Target className="text-purple-400"/>} />
+        <AgentMetricCard title="Avg Handle Time" value="90s" trend="Good" icon={<Clock className="text-amber-400"/>} />
+      </div>
+
+      {/* Secondary KPI Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-[#1e293b] p-4 rounded-xl border border-slate-800 flex items-center gap-4">
+          <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500"><CheckCircle size={20}/></div>
+          <div><p className="text-2xl font-bold text-white">43 <span className="text-[10px] text-slate-500 uppercase">tickets</span></p><p className="text-[10px] text-emerald-500 uppercase font-bold tracking-widest">Solved</p></div>
+        </div>
+        <div className="bg-[#1e293b] p-4 rounded-xl border border-slate-800 flex items-center gap-4">
+          <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-500"><MessageSquare size={20}/></div>
+          <div><p className="text-2xl font-bold text-white">105 <span className="text-[10px] text-slate-500 uppercase">actions</span></p><p className="text-[10px] text-indigo-500 uppercase font-bold tracking-widest">Interactions</p></div>
+        </div>
+        <div className="bg-[#1e293b] p-4 rounded-xl border border-slate-800 flex items-center gap-4">
+          <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500"><Clock size={20}/></div>
+          <div><p className="text-2xl font-bold text-white">45 <span className="text-[10px] text-slate-500 uppercase">hours</span></p><p className="text-[10px] text-purple-500 uppercase font-bold tracking-widest">Resolution Time</p></div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Performance Details */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-[#1e293b] rounded-3xl border border-slate-800 overflow-hidden shadow-lg">
-            <div className="flex border-b border-slate-800">
-              <button onClick={() => setActiveTab('overview')} className={`px-6 py-4 text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'overview' ? 'text-indigo-400 border-b-2 border-indigo-400 bg-indigo-500/5' : 'text-slate-500 hover:text-slate-300'}`}>Quality KPIs</button>
-              <button onClick={() => setActiveTab('evals')} className={`px-6 py-4 text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'evals' ? 'text-indigo-400 border-b-2 border-indigo-400 bg-indigo-500/5' : 'text-slate-500 hover:text-slate-300'}`}>Evaluator Comments</button>
-            </div>
-
-            <div className="p-8">
-              {activeTab === 'overview' ? (
-                <div className="space-y-6">
-                  {/* Visual Progress Bars */}
-                  <KPIBar label="Capturing Information" value={latestEval?.score || 0} />
-                  <KPIBar label="Phone Etiquette" value={latestEval ? Math.min(100, latestEval.score + 5) : 0} />
-                  <KPIBar label="Problem Solving" value={latestEval?.score || 0} />
-                  <KPIBar label="Product Knowledge" value={latestEval ? Math.max(0, latestEval.score - 10) : 0} />
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {filteredEvals.length === 0 ? (
-                    <p className="text-slate-500 text-center py-10">No evaluations found for this date range.</p>
-                  ) : filteredEvals.map((ev, i) => (
-                    <div key={i} className="p-5 bg-slate-900/50 rounded-2xl border border-slate-800 space-y-3">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs font-bold text-indigo-400 uppercase tracking-tighter">{ev.date} • Evaluated by {ev.evaluator}</span>
-                        <span className="bg-indigo-500/10 text-indigo-400 px-2 py-1 rounded text-[10px] font-black">{ev.score}%</span>
-                      </div>
-                      <p className="text-sm text-emerald-400 leading-relaxed italic"><span className="font-bold uppercase text-[10px] mr-2">Positives:</span> "{ev.positivePoints}"</p>
-                      <p className="text-sm text-orange-400 leading-relaxed italic"><span className="font-bold uppercase text-[10px] mr-2">Growth:</span> "{ev.improvementAreas}"</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+        {/* Quality Evaluation Score Bars */}
+        <div className="lg:col-span-2 bg-[#1e293b] p-8 rounded-2xl border border-slate-800">
+          <h3 className="text-white font-bold mb-8 flex items-center gap-2">
+            <BarChart2 className="text-indigo-400" /> Quality Evaluation KPIs
+          </h3>
+          <div className="space-y-8">
+            <KPIBar label="Capturing Information" icon={<Target size={16}/>} value={kpis.capture} />
+            <KPIBar label="Phone Etiquette" icon={<PhoneCall size={16}/>} value={kpis.etiquette} />
+            <KPIBar label="Problem Solving Abilities" icon={<CheckCircle size={16}/>} value={kpis.solving} />
+            <KPIBar label="Product Knowledge" icon={<BookOpen size={16}/>} value={kpis.product} />
+            <KPIBar label="Promotion" icon={<Megaphone size={16}/>} value={kpis.promo} />
+            <KPIBar label="Upselling" icon={<BarChart2 size={16}/>} value={kpis.upsell} />
           </div>
         </div>
 
-        {/* Right: AI Coach Sidebar */}
+        {/* AI Sidebar */}
         <div className="space-y-6">
-          <div className="bg-gradient-to-br from-indigo-600/20 to-slate-900 p-6 rounded-3xl border border-indigo-500/20 shadow-2xl relative overflow-hidden">
-             <div className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/10 blur-3xl rounded-full"></div>
-             <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-500/40"><BrainCircuit size={20}/></div>
-                <h3 className="text-sm font-black uppercase tracking-widest text-white">AI Coach</h3>
+          <div className="bg-[#1e293b] p-6 rounded-2xl border border-slate-800">
+             <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400"><Target size={20}/></div>
+                <h3 className="text-white font-bold">AI Performance Coach</h3>
              </div>
-             <p className="text-slate-300 text-sm leading-relaxed italic border-l-2 border-indigo-500/50 pl-4 py-1">
-               {latestEval 
-                ? `Based on your ${latestEval.score}% score, I recommend focusing on your product knowledge regarding the new promotion. Your empathy scores are excellent!` 
-                : "Select a date range with evaluations to receive personalized AI coaching insights."}
-             </p>
+             <div className="flex flex-col items-center justify-center py-12 text-slate-500 italic text-sm">
+                <div className="flex gap-1 mb-4">
+                   <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce"></div>
+                   <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce delay-100"></div>
+                   <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce delay-200"></div>
+                </div>
+                Analyzing your latest calls...
+             </div>
           </div>
 
-          <div className="bg-[#1e293b] p-6 rounded-3xl border border-slate-800">
-             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Quick Links</h3>
-             <div className="space-y-2">
-                <button className="w-full text-left px-4 py-3 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold rounded-xl border border-slate-800 transition-all">Knowledge Base</button>
-                <button className="w-full text-left px-4 py-3 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold rounded-xl border border-slate-800 transition-all">Submit Support Ticket</button>
-             </div>
+          <div className="bg-[#1e293b] p-6 rounded-2xl border border-slate-800">
+             <h3 className="text-white font-bold mb-4">Quick Links</h3>
+             <button className="w-full text-left p-3 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-xs mb-3 hover:border-indigo-500 transition-colors">Knowledge Base</button>
+             <button className="w-full text-left p-3 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-xs hover:border-indigo-500 transition-colors">Submit Ticket</button>
+          </div>
+
+          <div className="bg-indigo-900/20 p-6 rounded-2xl border border-indigo-500/20">
+             <h3 className="text-indigo-400 font-bold mb-2 flex items-center gap-2"><Megaphone size={16}/> Team Announcement</h3>
+             <p className="text-slate-400 text-xs italic">"Remember a customer is always right."</p>
+             <p className="text-indigo-500 text-[10px] font-bold mt-2 uppercase text-right">- Management</p>
           </div>
         </div>
       </div>
@@ -125,25 +111,33 @@ export const AgentDashboard: React.FC<Props> = ({ agent, dateRange, onDateChange
 };
 
 // Helper Components
-const StatCard = ({ title, value, icon, color }: any) => (
-  <div className="bg-[#1e293b] p-6 rounded-3xl border border-slate-800 shadow-lg group hover:border-indigo-500/30 transition-all">
-    <div className="flex justify-between items-start mb-4">
-      <div className="p-2 bg-slate-900 rounded-xl text-slate-500 group-hover:text-indigo-400 transition-colors">{icon}</div>
+const AgentMetricCard = ({ title, value, trend, target, icon }: any) => (
+  <div className="bg-[#1e293b] p-5 rounded-2xl border border-slate-800 group hover:border-indigo-500/50 transition-all">
+    <div className="flex justify-between mb-4">
+      <div className="p-2 bg-slate-900 rounded-lg border border-slate-800 group-hover:bg-indigo-500/10 transition-colors">{icon}</div>
+      <div className="text-[10px] uppercase font-black text-slate-500 tracking-tighter">ID: 810881446</div>
     </div>
-    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">{title}</p>
-    <p className={`text-3xl font-bold ${color}`}>{value}</p>
+    <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-1">{title}</p>
+    <div className="flex items-baseline gap-2">
+      <p className="text-3xl font-black text-white">{value}</p>
+      {trend && <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-0.5">↑ {trend}</span>}
+      {target && <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-0.5">↑ {target}</span>}
+    </div>
   </div>
 );
 
-const KPIBar = ({ label, value }: { label: string, value: number }) => (
-  <div className="space-y-2">
-    <div className="flex justify-between text-[11px] font-black text-slate-400 uppercase tracking-tighter">
-      <span>{label}</span>
-      <span className="text-white">{value}%</span>
+const KPIBar = ({ label, icon, value }: any) => (
+  <div>
+    <div className="flex justify-between items-center mb-2">
+      <div className="flex items-center gap-3 text-slate-300">
+        <div className="p-1.5 bg-slate-800 rounded text-indigo-400">{icon}</div>
+        <span className="text-xs font-bold">{label}</span>
+      </div>
+      <span className="text-xs font-black text-white">{value}%</span>
     </div>
-    <div className="h-2 bg-slate-900 rounded-full overflow-hidden">
+    <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
       <div 
-        className="h-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)] transition-all duration-1000" 
+        className="h-full bg-gradient-to-r from-orange-600 to-orange-400 shadow-[0_0_10px_rgba(234,88,12,0.5)] transition-all duration-1000" 
         style={{ width: `${value}%` }}
       ></div>
     </div>
