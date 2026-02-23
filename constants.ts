@@ -20,17 +20,15 @@ export const MOCK_AGENTS: Agent[] = [
     role: UserRole.AGENT,
     avatarUrl: 'https://picsum.photos/200/200?random=1',
     status: AgentStatus.ON_CALL,
-    department: 'Helpdesk',
-    shiftStart: '08:00 AM',
-    // Matches the history expected by StatCards
     history: [{
       date: '2026-02-01',
       answeredCalls: 45,
-      solvedTickets: 46,
+      transactions: 46,
       missedCalls: 2,
-      avgHandleTime: '1m 30s'
+      aht: '1m 30s',
+      abandonedCalls: 0,
+      resolutionRate: 0
     }],
-    // Matches the Evaluations view (Thick Bars & Comments)
     evaluations: [
       {
         score: 94,
@@ -63,14 +61,14 @@ export const MOCK_AGENTS: Agent[] = [
     role: UserRole.AGENT,
     avatarUrl: 'https://picsum.photos/200/200?random=2',
     status: AgentStatus.ONLINE,
-    department: 'Helpdesk',
-    shiftStart: '08:00 AM',
     history: [{
       date: '2026-02-01',
       answeredCalls: 52,
-      solvedTickets: 53,
+      transactions: 53,
       missedCalls: 0,
-      avgHandleTime: '1m 15s'
+      aht: '1m 15s',
+      abandonedCalls: 0,
+      resolutionRate: 0
     }],
     evaluations: [
       {
@@ -93,14 +91,14 @@ export const MOCK_AGENTS: Agent[] = [
     role: UserRole.AGENT,
     avatarUrl: 'https://picsum.photos/200/200?random=3',
     status: AgentStatus.AWAY,
-    department: 'Helpdesk',
-    shiftStart: '09:00 AM',
     history: [{
       date: '2026-02-01',
       answeredCalls: 30,
-      solvedTickets: 33,
+      transactions: 33,
       missedCalls: 5,
-      avgHandleTime: '2m 10s'
+      aht: '2m 10s',
+      abandonedCalls: 0,
+      resolutionRate: 0
     }],
     evaluations: [
       {
@@ -121,10 +119,8 @@ export const MOCK_AGENTS: Agent[] = [
     name: 'Call Center Admin',
     email: 'callcenter@dialndine.com',
     role: UserRole.ADMIN,
-    avatarUrl: 'https://ui-avatars.com/api/?name=Admin&background=4f46e5&color=fff',
+    avatarUrl: 'httpshttps://ui-avatars.com/api/?name=Admin&background=4f46e5&color=fff',
     status: AgentStatus.ONLINE,
-    department: 'Management',
-    shiftStart: '07:00 AM',
     history: [],
     evaluations: []
   }

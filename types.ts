@@ -7,6 +7,8 @@ export enum AgentStatus {
   ONLINE = "ONLINE",
   OFFLINE = "OFFLINE",
   BUSY = "BUSY",
+  ON_CALL = "ON_CALL",
+  AWAY = "AWAY",
 }
 
 export interface DailyStats {
@@ -16,15 +18,27 @@ export interface DailyStats {
   transactions: number;
   aht: string;
   resolutionRate: number;
+  missedCalls?: number;
+  solvedTickets?: number;
+}
+
+export interface Kpis {
+  capture: number;
+  etiquette: number;
+  solving: number;
+  product: number;
+  promo?: number;
+  upsell?: number;
 }
 
 export interface AgentEval {
-  kpis: {};
+  kpis: Kpis;
   date: string;
-  evaluator: string;
+  evaluator?: string;
   score: number;
-  positivePoints: string;
-  improvementAreas: string;
+  positivePoints?: string;
+  improvementAreas?: string;
+  comments?: string;
 }
 
 export interface Agent {
@@ -36,6 +50,8 @@ export interface Agent {
   avatarUrl: string;
   history: DailyStats[];
   evaluations: AgentEval[];
+  department?: string;
+  shiftStart?: string;
 }
 
 export interface User {

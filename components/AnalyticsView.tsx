@@ -11,7 +11,7 @@ export const AnalyticsView: React.FC<Props> = ({ agents }) => {
   // 1. Data Aggregation
   const totalCalls = agents.reduce((acc, curr) => acc + (curr.history[0]?.answeredCalls || 0), 0);
   const avgQA = Math.round(agents.reduce((acc, curr) => acc + (curr.evaluations[0]?.score || 0), 0) / agents.length);
-  const totalSolved = agents.reduce((acc, curr) => acc + (curr.history[0]?.solvedTickets || 0), 0);
+  const totalSolved = agents.reduce((acc, curr) => acc + (curr.history[0]?.transactions || 0), 0);
   
   // 2. Sort agents for the "Top Performers" list
   const topAgents = [...agents].sort((a, b) => (b.evaluations[0]?.score || 0) - (a.evaluations[0]?.score || 0)).slice(0, 5);

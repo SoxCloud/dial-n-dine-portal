@@ -38,12 +38,12 @@ const App: React.FC = () => {
   const handleLogin = (email: string) => {
     const mail = email.toLowerCase().trim();
     if (mail === 'callcenter@dialndine.com') {
-      setUser({ id: 'admin', name: 'System Admin', email: mail, role: UserRole.ADMIN });
+      setUser({ id: 'admin', name: 'System Admin', email: mail, role: UserRole.ADMIN, avatarUrl: 'https://i.pravatar.cc/150?u=admin' });
       return true;
     }
     const found = agents.find(a => a.email.toLowerCase() === mail);
     if (found) {
-      setUser({ id: found.id, name: found.name, email: found.email, role: UserRole.AGENT });
+      setUser({ id: found.id, name: found.name, email: found.email, role: UserRole.AGENT, avatarUrl: found.avatarUrl });
       return true;
     }
     return false;
@@ -63,7 +63,7 @@ const App: React.FC = () => {
       <Sidebar 
         user={user} 
         activeTab={activeTab} 
-        setActiveTab={(tab) => { setActiveTab(tab); setSelectedAgentId(null); }} 
+        setActiveTab={(tab: string) => { setActiveTab(tab); setSelectedAgentId(null); }} 
         onLogout={() => setUser(null)} 
         isDarkMode={isDarkMode} 
         toggleTheme={() => setIsDarkMode(!isDarkMode)} 

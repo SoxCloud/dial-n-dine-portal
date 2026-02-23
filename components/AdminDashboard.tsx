@@ -149,7 +149,7 @@ export const AdminDashboard: React.FC<Props> = ({ agents, dateRange, onDateChang
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm font-black text-slate-300 text-center">{agent.history[0]?.answeredCalls || 0}</td>
-                  <td className="px-6 py-4 text-sm font-black text-slate-300 text-center">{agent.history[0]?.solvedTickets || 0}</td>
+                  <td className="px-6 py-4 text-sm font-black text-slate-300 text-center">{agent.history[0]?.transactions || 0}</td>
                   <td className="px-6 py-4 text-center">
                     <span className="text-sm font-black text-indigo-400">{agent.evaluations[0]?.score || 0}%</span>
                   </td>
