@@ -49,7 +49,7 @@ export interface Agent {
   status: AgentStatus;
   avatarUrl: string;
   history: DailyStats[];
-  evaluations: AgentEval[];
+  evaluations: AgentEval[]; // This uses AgentEval, which is correct
   department?: string;
   shiftStart?: string;
 }
@@ -62,17 +62,21 @@ export interface User {
   avatarUrl: string;
 }
 
-export interface Evaluation {
-  evaluations: {
-    score: number;
-    comments?: string; // ADD THIS LINE
-    kpis: {
-      capture: number;
-      etiquette: number;
-      solving: number;
-      product: number;
-      promo: number;
-      upsell: number;
-    };
-  }[];
+// FIXED: This should match AgentEval structure since that's what you're using
+export interface Evaluation extends AgentEval {
+  // This extends AgentEval, so it inherits all its properties
+  // You can add any additional fields specific to Evaluation here if needed
+  id?: string; // Optional ID if needed
 }
+
+// OR if you don't want to use extends, define it explicitly:
+// export interface Evaluation {
+//   kpis: Kpis;
+//   date: string;
+//   evaluator?: string;
+//   score: number;
+//   positivePoints?: string;
+//   improvementAreas?: string;
+//   comments?: string;
+//   id?: string;
+// }
