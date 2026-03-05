@@ -39,22 +39,25 @@ export const AdminDashboard: React.FC<Props> = ({
     0,
   );
 
-// EVALUATION STATS
-const allEvaluations = agents.flatMap((a) => a.evaluations);
+  // EVALUATION STATS
+  const allEvaluations = agents.flatMap((a) => a.evaluations);
 
-const totalEvaluatedCalls = allEvaluations.length;
+  const totalEvaluatedCalls = allEvaluations.length;
 
-const totalTeamScore = allEvaluations.reduce(
-  (sum, e) => sum + (e.score || 0),
-  0
-);
+  const totalTeamScore = allEvaluations.reduce(
+    (sum, e) => sum + (e.score || 0),
+    0,
+  );
 
-const teamAverageScore =
-  totalEvaluatedCalls > 0
-    ? (totalTeamScore / totalEvaluatedCalls).toFixed(1)
-    : "0";
-  const avgCSAT = agents.length 
-    ? (agents.reduce((sum, a) => sum + (a.evaluations[0]?.score || 0), 0) / agents.length).toFixed(1) 
+  const teamAverageScore =
+    totalEvaluatedCalls > 0
+      ? (totalTeamScore / totalEvaluatedCalls).toFixed(1)
+      : "0";
+  const avgCSAT = agents.length
+    ? (
+        agents.reduce((sum, a) => sum + (a.evaluations[0]?.score || 0), 0) /
+        agents.length
+      ).toFixed(1)
     : "0";
 
   const chartData = agents.map((a) => ({
@@ -113,6 +116,12 @@ const teamAverageScore =
           icon={<PhoneCall className="text-blue-400" />}
         />
         <MetricCard
+          title="Evaluated Recordings"
+          value={totalEvaluatedCalls}
+          change="+QA"
+          icon={<CheckCircle className="text-emerald-400" />}
+        />
+        <MetricCard
           title="Avg Handle Time"
           value="85s"
           change="-5%"
@@ -120,9 +129,9 @@ const teamAverageScore =
           icon={<Clock className="text-orange-400" />}
         />
         <MetricCard
-          title="Team CSAT"
-          value={`${avgCSAT}%`}
-          change="+0.2%"
+          title="Team QA Average"
+          value={`${teamAverageScore}%`}
+          change="+QA"
           icon={<CheckCircle className="text-emerald-400" />}
         />
         <MetricCard
@@ -137,7 +146,8 @@ const teamAverageScore =
         {/* Call Volume Chart */}
         <div className="lg:col-span-2 bg-[#1e293b]/50 border border-slate-800 p-6 rounded-2xl">
           <h3 className="text-white font-semibold mb-6 flex items-center gap-2">
-            <Activity className="text-indigo-400" size={18}/> Call Volume per Agent
+            <Activity className="text-indigo-400" size={18} /> Call Volume per
+            Agent
           </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -292,10 +302,14 @@ const MetricCard = ({ title, value, change, icon, isNegative }: any) => (
   <div className="bg-[#1e293b]/50 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-indigo-500/50 transition-all shadow-lg">
     <div className="flex justify-between items-start mb-4">
       <div>
-        <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-1">{title}</p>
+        <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-1">
+          {title}
+        </p>
         <div className="flex items-end gap-2">
           <span className="text-3xl font-black text-white">{value}</span>
-          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${isNegative ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+          <span
+            className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${isNegative ? "bg-red-500/10 text-red-500" : "bg-emerald-500/10 text-emerald-500"}`}
+          >
             {change}
           </span>
         </div>

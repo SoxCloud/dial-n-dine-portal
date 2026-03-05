@@ -1,18 +1,24 @@
-import { Agent, AgentStatus, UserRole } from '../types';
+import { Agent, AgentStatus, UserRole } from "../types";
 
-const SHEET_ID = '1_MEcMoGiXuYhmxwKv0-Cc0SryMYVIpVOMO6ea2MrKwY';
+const SHEET_ID = "1_MEcMoGiXuYhmxwKv0-Cc0SryMYVIpVOMO6ea2MrKwY";
 
 // HELPER: Normalizes names to handle "Claire M" vs "Claire Makeleni"
-const normalizeName = (name: string) => name.trim().toLowerCase().split(' ')[0];
+const normalizeName = (name: string) => name.trim().toLowerCase().split(" ")[0];
 
 const normalizeDate = (dateStr: string): string => {
-  if (!dateStr || dateStr === 'undefined' || dateStr.trim() === '' || dateStr.includes('Date')) return '';
+  if (
+    !dateStr ||
+    dateStr === "undefined" ||
+    dateStr.trim() === "" ||
+    dateStr.includes("Date")
+  )
+    return "";
   const cleanDate = dateStr.trim();
-  if (cleanDate.includes('/')) {
-    const parts = cleanDate.split('/');
+  if (cleanDate.includes("/")) {
+    const parts = cleanDate.split("/");
     if (parts.length === 3) {
-      const day = parts[0].padStart(2, '0');
-      const month = parts[1].padStart(2, '0');
+      const day = parts[0].padStart(2, "0");
+      const month = parts[1].padStart(2, "0");
       const year = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
       return `${year}-${month}-${day}`;
     }
@@ -24,32 +30,60 @@ async function fetchTabCsv(tabName: string) {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${tabName}`;
   const response = await fetch(url);
   const text = await response.text();
-  return text.split('\n').map(row => 
-    row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cell => cell.replace(/"/g, '').trim())
-  );
+  return text
+    .split("\n")
+    .map((row) =>
+      row
+        .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+        .map((cell) => cell.replace(/"/g, "").trim()),
+    );
 }
 
 export const fetchAllDashboardData = async () => {
   const [agentData, evalData, metricData] = await Promise.all([
-    fetchTabCsv('Agents'),
-    fetchTabCsv('CallEvaluations'),
-    fetchTabCsv('TicketMetrics')
+    fetchTabCsv("Agents"),
+    fetchTabCsv("CallEvaluations"),
+    fetchTabCsv("TicketMetrics"),
+    fetchTabCsv("FormData"),
   ]);
 
   const agentsMap: Record<string, Agent> = {};
 
   // 1. Process CallEvaluations (Mapping from image_141a5a)
-  evalData.slice(1).forEach(row => {
+  evalData.slice(1).forEach((row) => {
     // A:agent, B:email, D:Date, E:evaluator, H:Prod, I:Etiquette, J:Problem, K:Upsell, L:Promo, M:Capture, O:Pos, P:Improv, Q:Rating
-    const [name, email, , date, evaluator, , , prod, etiquette, problem, upsell, promo, capture, , positive, improvement, rating] = row;
-    
-    if (!email || email === 'email' || isNaN(parseFloat(rating))) return; // Skip headers/empty
+    const [
+      name,
+      email,
+      ,
+      date,
+      evaluator,
+      ,
+      ,
+      prod,
+      etiquette,
+      problem,
+      upsell,
+      promo,
+      capture,
+      ,
+      positive,
+      improvement,
+      rating,
+    ] = row;
+
+    if (!email || email === "email" || isNaN(parseFloat(rating))) return; // Skip headers/empty
 
     if (!agentsMap[email]) {
       agentsMap[email] = {
-        id: email, name, email, role: UserRole.AGENT, status: AgentStatus.OFFLINE,
+        id: email,
+        name,
+        email,
+        role: UserRole.AGENT,
+        status: AgentStatus.OFFLINE,
         avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
-        history: [], evaluations: []
+        history: [],
+        evaluations: [],
       };
     }
 
@@ -65,34 +99,39 @@ export const fetchAllDashboardData = async () => {
         solving: parseInt(problem) || 0,
         upsell: parseInt(upsell) || 0,
         promo: parseInt(promo) || 0,
-        capture: parseInt(capture) || 0
-      }
+        capture: parseInt(capture) || 0,
+      },
     });
   });
 
   // 2. Process Agents Tab (Mapping from image_141735)
-  agentData.slice(1).forEach(row => {
+  agentData.slice(1).forEach((row) => {
     const [name, date, answered, abandoned, transactions] = row;
-    const agent = Object.values(agentsMap).find(a => normalizeName(a.name) === normalizeName(name));
+    const agent = Object.values(agentsMap).find(
+      (a) => normalizeName(a.name) === normalizeName(name),
+    );
     if (agent) {
       agent.history.push({
         date: normalizeDate(date),
         answeredCalls: parseInt(answered) || 0,
         abandonedCalls: parseInt(abandoned) || 0,
         transactions: parseInt(transactions) || 0,
-        aht: '0s', resolutionRate: 0
+        aht: "0s",
+        resolutionRate: 0,
       });
     }
   });
 
   // 3. Process TicketMetrics (Mapping from image_141d9a)
-  metricData.slice(1).forEach(row => {
+  metricData.slice(1).forEach((row) => {
     const [name, , , aht, , , , , , , date] = row;
-    const agent = Object.values(agentsMap).find(a => normalizeName(a.name) === normalizeName(name));
+    const agent = Object.values(agentsMap).find(
+      (a) => normalizeName(a.name) === normalizeName(name),
+    );
     const targetDate = normalizeDate(date);
-    const dayStats = agent?.history.find(h => h.date === targetDate);
+    const dayStats = agent?.history.find((h) => h.date === targetDate);
     if (dayStats) {
-      dayStats.aht = aht || '0s';
+      dayStats.aht = aht || "0s";
     }
   });
 

@@ -42,7 +42,18 @@ export const AgentDashboard: React.FC<Props> = ({
     solving: 0,
     product: 0,
   };
- const currentScore = agent.evaluations[0]?.score || 0;
+  const currentScore = agent.evaluations[0]?.score || 0;
+
+  // NEW: Calculate evaluation statistics
+  const totalEvaluations = agent.evaluations.length;
+
+  const totalScore = agent.evaluations.reduce(
+    (sum, evalItem) => sum + (evalItem.score || 0),
+    0,
+  );
+
+  const averageScore =
+    totalEvaluations > 0 ? Math.round(totalScore / totalEvaluations) : 0;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
@@ -141,12 +152,12 @@ export const AgentDashboard: React.FC<Props> = ({
                 color="text-orange-400"
               />
               <PremiumStatCard
-  title="Total QA Score"
-  value={totalScore}
-  sub={`${totalEvaluations} evaluations`}
-  icon={<Target />}
-  color="text-purple-400"
-/>
+                title="Total QA Score"
+                value={totalScore}
+                sub={`${totalEvaluations} evaluations`}
+                icon={<Target />}
+                color="text-purple-400"
+              />
             </div>
 
             <div className="bg-[#1e293b]/40 border border-slate-800 p-8 rounded-[2rem] relative overflow-hidden">
