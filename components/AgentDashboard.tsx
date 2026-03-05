@@ -42,7 +42,7 @@ export const AgentDashboard: React.FC<Props> = ({
     solving: 0,
     product: 0,
   };
-  const currentScore = agent.evaluations[0]?.score || 0;
+ const currentScore = agent.evaluations[0]?.score || 0;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
@@ -118,7 +118,7 @@ export const AgentDashboard: React.FC<Props> = ({
         /* --- VIEW 1: PERFORMANCE OVERVIEW --- */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-8 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <PremiumStatCard
                 title="Calls Handled"
                 value={agent.history[0]?.answeredCalls || 0}
@@ -140,6 +140,13 @@ export const AgentDashboard: React.FC<Props> = ({
                 icon={<Clock />}
                 color="text-orange-400"
               />
+              <PremiumStatCard
+  title="Total QA Score"
+  value={totalScore}
+  sub={`${totalEvaluations} evaluations`}
+  icon={<Target />}
+  color="text-purple-400"
+/>
             </div>
 
             <div className="bg-[#1e293b]/40 border border-slate-800 p-8 rounded-[2rem] relative overflow-hidden">
